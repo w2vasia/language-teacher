@@ -160,19 +160,26 @@ function BarChart({
     );
 }
 
+function labelInterval(count: number): number {
+    if (count <= 10) return 1;
+    if (count <= 31) return 5;
+    return Math.ceil(count / 8);
+}
+
 function TrendChart({ data }: { data: ErrorTrend[] }) {
     const max = Math.max(...data.map((d) => d.error_count), 1);
+    const step = labelInterval(data.length);
 
     return (
         <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm p-6">
             <h3 className="mb-4 text-sm font-medium text-amber-700/60">
                 Error Count Trend
             </h3>
-            <div className="flex items-end gap-1" style={{ height: 150 }}>
-                {data.map((d) => (
+            <div className="flex items-end gap-px overflow-hidden" style={{ height: 150 }}>
+                {data.map((d, i) => (
                     <div
                         key={d.date}
-                        className="flex flex-1 flex-col items-center gap-1"
+                        className="flex min-w-0 flex-1 flex-col items-center gap-1"
                     >
                         <div
                             className="w-full rounded-t bg-amber-500 transition-all duration-300"
@@ -181,8 +188,8 @@ function TrendChart({ data }: { data: ErrorTrend[] }) {
                                 minHeight: d.error_count > 0 ? 4 : 0,
                             }}
                         />
-                        <span className="text-xs text-amber-600/40">
-                            {d.date.slice(5)}
+                        <span className="truncate text-xs text-amber-600/40">
+                            {i % step === 0 ? d.date.slice(5) : ''}
                         </span>
                     </div>
                 ))}
@@ -193,17 +200,18 @@ function TrendChart({ data }: { data: ErrorTrend[] }) {
 
 function ErrorRateChart({ data }: { data: ErrorTrend[] }) {
     const max = Math.max(...data.map((d) => d.error_rate), 1);
+    const step = labelInterval(data.length);
 
     return (
         <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm p-6">
             <h3 className="mb-4 text-sm font-medium text-amber-700/60">
                 Errors per 100 Words
             </h3>
-            <div className="flex items-end gap-1" style={{ height: 150 }}>
-                {data.map((d) => (
+            <div className="flex items-end gap-px overflow-hidden" style={{ height: 150 }}>
+                {data.map((d, i) => (
                     <div
                         key={d.date}
-                        className="flex flex-1 flex-col items-center gap-1"
+                        className="flex min-w-0 flex-1 flex-col items-center gap-1"
                     >
                         <div
                             className="w-full rounded-t bg-violet-400 transition-all duration-300"
@@ -212,8 +220,8 @@ function ErrorRateChart({ data }: { data: ErrorTrend[] }) {
                                 minHeight: d.error_rate > 0 ? 4 : 0,
                             }}
                         />
-                        <span className="text-xs text-amber-600/40">
-                            {d.date.slice(5)}
+                        <span className="truncate text-xs text-amber-600/40">
+                            {i % step === 0 ? d.date.slice(5) : ''}
                         </span>
                     </div>
                 ))}
