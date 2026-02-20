@@ -24,6 +24,7 @@ services:
         depends_on:
             - pgsql
             - redis
+            - languagetool
     pgsql:
         image: 'postgres:18-alpine'
         ports:
@@ -64,6 +65,20 @@ services:
                 - ping
             retries: 3
             timeout: 5s
+    languagetool:
+        image: 'erikvl87/languagetool:latest'
+        ports:
+            - '${FORWARD_LANGUAGETOOL_PORT:-8010}:8010'
+        environment:
+            Java_Xms: 512m
+            Java_Xmx: 1g
+        networks:
+            - sail
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:8010/v2/languages']
+            interval: 30s
+            retries: 3
+            timeout: 10s
 networks:
     sail:
         driver: bridge

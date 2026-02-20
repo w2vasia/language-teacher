@@ -31,7 +31,7 @@ A self-hosted web application that helps users improve their writing skills by a
 - **Frontend**: Blade templates, Tailwind CSS v4, Vite 7
 - **Database**: PostgreSQL 18
 - **Cache/Queue/Sessions**: Redis
-- **API Integration**: LanguageTool (self-hosted or public)
+- **API Integration**: LanguageTool HTTP Server (local Docker container) — [docs](https://dev.languagetool.org/http-server)
 - **Containerization**: Docker Compose (Laravel Sail)
 - **Testing**: PHPUnit 11, Mockery
 
