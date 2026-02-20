@@ -4,6 +4,8 @@ import { Head } from '@inertiajs/react';
 interface ErrorTrend {
     date: string;
     error_count: number;
+    word_count: number;
+    error_rate: number;
 }
 
 interface Stats {
@@ -12,6 +14,12 @@ interface Stats {
     total_words_checked: number;
     errors_per_submission: number;
     error_trend: ErrorTrend[];
+    previous?: {
+        total_submissions: number;
+        total_errors: number;
+        total_words_checked: number;
+        errors_per_submission: number;
+    };
 }
 
 interface WeakArea {
@@ -25,11 +33,30 @@ interface Props {
     weakAreas: WeakArea[];
 }
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
+function StatCard({ label, value, previousValue, invertColor = false }: {
+    label: string;
+    value: string | number;
+    previousValue?: number;
+    invertColor?: boolean;
+}) {
+    const current = typeof value === 'number' ? value : parseFloat(value);
+    const diff = previousValue !== undefined && previousValue > 0
+        ? Math.round(((current - previousValue) / previousValue) * 100)
+        : null;
+
+    const isPositive = invertColor ? diff !== null && diff > 0 : diff !== null && diff < 0;
+
     return (
         <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm p-6">
             <dt className="text-sm font-medium text-amber-700/60">{label}</dt>
-            <dd className="mt-1 font-serif text-3xl text-amber-950">{value}</dd>
+            <dd className="mt-1 flex items-baseline gap-2">
+                <span className="font-serif text-3xl text-amber-950">{value}</span>
+                {diff !== null && diff !== 0 && (
+                    <span className={`text-sm font-medium ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {diff > 0 ? '\u2191' : '\u2193'} {Math.abs(diff)}%
+                    </span>
+                )}
+            </dd>
         </div>
     );
 }
@@ -74,10 +101,10 @@ export default function Dashboard({ stats, weakAreas }: Props) {
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <StatCard label="Submissions" value={stats.total_submissions} />
-                        <StatCard label="Total Errors" value={stats.total_errors} />
-                        <StatCard label="Words Checked" value={stats.total_words_checked} />
-                        <StatCard label="Errors/Submission" value={stats.errors_per_submission} />
+                        <StatCard label="Submissions" value={stats.total_submissions} previousValue={stats.previous?.total_submissions} invertColor />
+                        <StatCard label="Total Errors" value={stats.total_errors} previousValue={stats.previous?.total_errors} />
+                        <StatCard label="Words Checked" value={stats.total_words_checked} previousValue={stats.previous?.total_words_checked} invertColor />
+                        <StatCard label="Errors/Submission" value={stats.errors_per_submission} previousValue={stats.previous?.errors_per_submission} />
                     </div>
 
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

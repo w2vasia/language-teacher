@@ -28,10 +28,23 @@ class DashboardPageTest extends TestCase
         $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertOk();
-        $response->assertInertia(fn($page) => $page
+        $response->assertInertia(fn ($page) => $page
             ->component('Dashboard')
             ->has('stats')
             ->has('weakAreas')
+        );
+    }
+
+    public function test_dashboard_stats_include_previous_period(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Dashboard')
+            ->has('stats.previous')
         );
     }
 }
