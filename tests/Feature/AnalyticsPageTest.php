@@ -28,11 +28,52 @@ class AnalyticsPageTest extends TestCase
         $response = $this->actingAs($user)->get('/analytics');
 
         $response->assertOk();
-        $response->assertInertia(fn($page) => $page
+        $response->assertInertia(fn ($page) => $page
             ->component('Analytics')
             ->has('stats')
             ->has('weakAreas')
             ->has('errorSummary')
         );
+    }
+
+    public function test_analytics_accepts_days_param(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/analytics?days=30');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Analytics')
+            ->has('stats')
+            ->has('stats.previous')
+            ->where('days', 30)
+        );
+    }
+
+    public function test_analytics_all_time_has_no_previous(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/analytics?days=all');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Analytics')
+            ->where('days', null)
+            ->has('stats', fn ($stats) => $stats
+                ->missing('previous')
+                ->etc()
+            )
+        );
+    }
+
+    public function test_analytics_rejects_invalid_days(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/analytics?days=999');
+
+        $response->assertRedirect();
     }
 }

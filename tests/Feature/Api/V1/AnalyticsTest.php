@@ -58,6 +58,17 @@ class AnalyticsTest extends TestCase
         $this->assertEquals('grammar', $response->json('0.slug'));
     }
 
+    public function test_dashboard_accepts_days_param(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/analytics/dashboard?days=30');
+
+        $response->assertOk()
+            ->assertJsonStructure(['previous']);
+    }
+
     public function test_unauthenticated_returns_401(): void
     {
         $this->getJson('/api/v1/analytics/dashboard')->assertUnauthorized();
