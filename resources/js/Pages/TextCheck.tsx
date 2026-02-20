@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import axios from 'axios';
 
@@ -58,7 +58,7 @@ export default function TextCheck() {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                <h2 className="font-serif text-xl leading-tight text-amber-950">
                     Text Check
                 </h2>
             }
@@ -67,21 +67,21 @@ export default function TextCheck() {
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                    <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm">
                         <div className="p-6">
                             <form onSubmit={quickCheck}>
                                 <textarea
                                     value={text}
                                     onChange={(e) => setText(e.target.value)}
                                     rows={8}
-                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    className="w-full rounded-xl border-amber-200 bg-white/80 shadow-sm transition-colors focus:border-amber-500 focus:ring-amber-500 font-serif text-amber-950/80 leading-relaxed"
                                     placeholder="Paste or type your text here..."
                                 />
                                 <div className="mt-4 flex gap-3">
                                     <button
                                         type="submit"
                                         disabled={loading || !text.trim()}
-                                        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+                                        className="rounded-full bg-amber-950 px-5 py-2.5 text-sm font-semibold text-amber-50 shadow-sm transition-all duration-200 hover:bg-amber-800 hover:shadow-lg hover:shadow-amber-900/20 disabled:opacity-50"
                                     >
                                         {loading ? 'Checking...' : 'Quick Check'}
                                     </button>
@@ -89,7 +89,7 @@ export default function TextCheck() {
                                         type="button"
                                         onClick={analyzeAndSave}
                                         disabled={loading || !text.trim()}
-                                        className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 disabled:opacity-50"
+                                        className="rounded-full bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-700/20 disabled:opacity-50"
                                     >
                                         {loading ? 'Analyzing...' : 'Analyze & Save'}
                                     </button>
@@ -97,13 +97,13 @@ export default function TextCheck() {
                             </form>
 
                             {error && (
-                                <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+                                <div className="mt-4 rounded-xl bg-rose-50 border border-rose-200/60 p-3 text-sm text-rose-700">
                                     {error}
                                 </div>
                             )}
 
                             {saved && (
-                                <div className="mt-4 rounded-md bg-green-50 p-3 text-sm text-green-700">
+                                <div className="mt-4 rounded-xl bg-emerald-50 border border-emerald-200/60 p-3 text-sm text-emerald-700">
                                     Analysis saved to your history.
                                 </div>
                             )}
@@ -111,29 +111,29 @@ export default function TextCheck() {
                     </div>
 
                     {matches.length > 0 && (
-                        <div className="mt-6 overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                        <div className="mt-6 rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm">
                             <div className="p-6">
-                                <h3 className="mb-4 text-lg font-medium text-gray-900">
+                                <h3 className="mb-4 font-serif text-lg text-amber-950">
                                     Found {matches.length} issue{matches.length !== 1 ? 's' : ''}
                                 </h3>
                                 <ul className="space-y-4">
                                     {matches.map((match, i) => (
-                                        <li key={i} className="rounded-md border border-red-200 bg-red-50 p-4">
-                                            <p className="text-sm font-medium text-red-800">
+                                        <li key={i} className="rounded-xl border border-rose-200/60 bg-rose-50/50 p-4">
+                                            <p className="text-sm font-medium text-rose-800">
                                                 {match.message}
                                             </p>
                                             {match.rule && (
-                                                <p className="mt-1 text-xs text-gray-500">
+                                                <p className="mt-1 text-xs text-amber-700/50">
                                                     Rule: {match.rule.id} — {match.rule.description}
                                                 </p>
                                             )}
                                             {match.replacements && match.replacements.length > 0 && (
                                                 <div className="mt-2 flex flex-wrap gap-1">
-                                                    <span className="text-xs text-gray-500">Suggestions:</span>
+                                                    <span className="text-xs text-amber-700/50">Suggestions:</span>
                                                     {match.replacements.slice(0, 5).map((r, j) => (
                                                         <span
                                                             key={j}
-                                                            className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-800"
+                                                            className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800"
                                                         >
                                                             {r.value}
                                                         </span>

@@ -34,7 +34,7 @@ export default function ErrorHistory({ submissions }: Props) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                <h2 className="font-serif text-xl leading-tight text-amber-950">
                     Error History
                 </h2>
             }
@@ -44,39 +44,39 @@ export default function ErrorHistory({ submissions }: Props) {
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     {submissions.data.length === 0 ? (
-                        <div className="rounded-lg bg-white p-6 text-center text-gray-500 shadow-sm">
+                        <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm p-6 text-center text-amber-700/60">
                             No submissions yet. Go to Text Check to analyze some text.
                         </div>
                     ) : (
                         <div className="space-y-4">
                             {submissions.data.map((sub) => (
-                                <div key={sub.id} className="overflow-hidden rounded-lg bg-white shadow-sm">
-                                    <div className="border-b border-gray-200 p-4">
+                                <div key={sub.id} className="overflow-hidden rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm">
+                                    <div className="border-b border-amber-200/30 p-4">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-sm text-gray-500">
+                                                <p className="text-sm text-amber-700/50">
                                                     {new Date(sub.created_at).toLocaleDateString()} — {sub.word_count} words
                                                 </p>
-                                                <p className="mt-1 line-clamp-2 text-sm text-gray-700">
+                                                <p className="mt-1 line-clamp-2 text-sm text-amber-800">
                                                     {sub.original_text}
                                                 </p>
                                             </div>
-                                            <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                            <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700">
                                                 {sub.errors.length} error{sub.errors.length !== 1 ? 's' : ''}
                                             </span>
                                         </div>
                                     </div>
                                     {sub.errors.length > 0 && (
-                                        <div className="divide-y divide-gray-100 px-4">
+                                        <div className="divide-y divide-amber-100/60 px-4">
                                             {sub.errors.map((err) => (
                                                 <div key={err.id} className="py-3">
                                                     <div className="flex items-start justify-between">
                                                         <div>
-                                                            <p className="text-sm text-gray-800">{err.message}</p>
+                                                            <p className="text-sm text-amber-900">{err.message}</p>
                                                             {err.replacement_suggestions?.length > 0 && (
                                                                 <div className="mt-1 flex flex-wrap gap-1">
                                                                     {err.replacement_suggestions.slice(0, 3).map((s, i) => (
-                                                                        <span key={i} className="rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-800">
+                                                                        <span key={i} className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">
                                                                             {s}
                                                                         </span>
                                                                     ))}
@@ -84,7 +84,7 @@ export default function ErrorHistory({ submissions }: Props) {
                                                             )}
                                                         </div>
                                                         {err.error_category && (
-                                                            <span className="ml-2 shrink-0 rounded bg-gray-100 px-2 py-0.5 text-xs capitalize text-gray-600">
+                                                            <span className="ml-2 shrink-0 rounded-full bg-amber-100/80 px-2.5 py-0.5 text-xs capitalize text-amber-700">
                                                                 {err.error_category.name}
                                                             </span>
                                                         )}
@@ -100,18 +100,18 @@ export default function ErrorHistory({ submissions }: Props) {
                                 {submissions.prev_page_url ? (
                                     <Link
                                         href={submissions.prev_page_url}
-                                        className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                        className="rounded-full border border-amber-200 bg-white/70 px-4 py-2 text-sm font-semibold text-amber-900 shadow-sm transition-all duration-200 hover:bg-amber-50 hover:shadow-md"
                                     >
                                         Previous
                                     </Link>
                                 ) : <div />}
-                                <span className="self-center text-sm text-gray-500">
+                                <span className="self-center text-sm text-amber-700/50">
                                     Page {submissions.current_page} of {submissions.last_page}
                                 </span>
                                 {submissions.next_page_url ? (
                                     <Link
                                         href={submissions.next_page_url}
-                                        className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                        className="rounded-full border border-amber-200 bg-white/70 px-4 py-2 text-sm font-semibold text-amber-900 shadow-sm transition-all duration-200 hover:bg-amber-50 hover:shadow-md"
                                     >
                                         Next
                                     </Link>
