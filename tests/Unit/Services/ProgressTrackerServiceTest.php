@@ -172,4 +172,33 @@ class ProgressTrackerServiceTest extends TestCase
         $todayEntry = collect($trend)->firstWhere('date', now()->toDateString());
         $this->assertEquals(2, $todayEntry['error_count']);
     }
+
+    public function test_get_error_trend_includes_error_rate(): void
+    {
+        $user = User::factory()->create();
+        $submission = TextSubmission::factory()->create([
+            'user_id' => $user->id,
+            'original_text' => str_repeat('word ', 50), // 50 words
+            'created_at' => now(),
+        ]);
+        Error::factory()->count(5)->create([
+            'text_submission_id' => $submission->id,
+            'created_at' => now(),
+        ]);
+
+        $trend = $this->service->getErrorTrend($user, 7);
+
+        $todayEntry = collect($trend)->firstWhere('date', now()->toDateString());
+        $this->assertArrayHasKey('error_rate', $todayEntry);
+        $this->assertEquals(10.0, $todayEntry['error_rate']); // 5 errors / 50 words * 100
+    }
+
+    public function test_get_error_trend_rate_zero_when_no_words(): void
+    {
+        $user = User::factory()->create();
+        $trend = $this->service->getErrorTrend($user, 7);
+
+        $todayEntry = collect($trend)->firstWhere('date', now()->toDateString());
+        $this->assertEquals(0, $todayEntry['error_rate']);
+    }
 }

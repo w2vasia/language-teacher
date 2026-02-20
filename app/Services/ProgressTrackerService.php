@@ -94,12 +94,23 @@ class ProgressTrackerService
             ->pluck('error_count', 'date')
             ->toArray();
 
+        $dailyWords = $user->textSubmissions()
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('DATE(created_at) as date, sum(word_count) as words')
+            ->groupBy('date')
+            ->pluck('words', 'date')
+            ->toArray();
+
         $trend = [];
         for ($i = 0; $i < $days; $i++) {
             $date = $startDate->copy()->addDays($i)->toDateString();
+            $errors = $dailyCounts[$date] ?? 0;
+            $words = (int) ($dailyWords[$date] ?? 0);
             $trend[] = [
                 'date' => $date,
-                'error_count' => $dailyCounts[$date] ?? 0,
+                'error_count' => $errors,
+                'word_count' => $words,
+                'error_rate' => $words > 0 ? round($errors / $words * 100, 1) : 0,
             ];
         }
 
