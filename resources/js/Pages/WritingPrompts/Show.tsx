@@ -1,4 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import MatchList, { Match } from '@/Components/MatchList';
+import Card from '@/Components/Card';
+import Alert from '@/Components/Alert';
+import Badge, { BadgeVariant } from '@/Components/Badge';
+import Textarea from '@/Components/Textarea';
 import { Head, Link } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import axios from 'axios';
@@ -15,15 +20,6 @@ interface Props {
     prompt: WritingPrompt;
 }
 
-interface Match {
-    message: string;
-    context?: { text: string; offset: number; length: number };
-    offset: number;
-    length: number;
-    replacements?: { value: string }[];
-    rule?: { id: string; description: string; category?: { id: string } };
-}
-
 interface AnalyzeResponse {
     submission: {
         id: number;
@@ -35,17 +31,17 @@ interface AnalyzeResponse {
     matches: Match[];
 }
 
-const categoryBadgeColors: Record<string, string> = {
-    general: 'bg-sky-100 text-sky-800',
-    ielts: 'bg-violet-100 text-violet-800',
-    toefl: 'bg-indigo-100 text-indigo-800',
-    business: 'bg-amber-100 text-amber-800',
+const categoryBadgeVariant: Record<string, BadgeVariant> = {
+    general: 'sky',
+    ielts: 'violet',
+    toefl: 'indigo',
+    business: 'amber',
 };
 
-const difficultyBadgeColors: Record<string, string> = {
-    beginner: 'bg-emerald-100 text-emerald-800',
-    intermediate: 'bg-amber-100 text-amber-800',
-    advanced: 'bg-rose-100 text-rose-800',
+const difficultyBadgeVariant: Record<string, BadgeVariant> = {
+    beginner: 'emerald',
+    intermediate: 'amber',
+    advanced: 'rose',
 };
 
 function ieltsBand(score: number): string {
@@ -77,6 +73,7 @@ function clientWordCount(text: string): number {
 export default function Show({ prompt }: Props) {
     const [text, setText] = useState('');
     const [matches, setMatches] = useState<Match[]>([]);
+    const [checked, setChecked] = useState(false);
     const [loading, setLoading] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -94,6 +91,7 @@ export default function Show({ prompt }: Props) {
         try {
             const { data } = await axios.post('/api/v1/check-text', { text });
             setMatches(data.matches);
+            setChecked(true);
         } catch {
             setError('Failed to check text. Please try again.');
         } finally {
@@ -112,6 +110,7 @@ export default function Show({ prompt }: Props) {
                 writing_prompt_id: prompt.id,
             });
             setMatches(data.matches);
+            setChecked(true);
             setSaved(true);
             const wc = data.submission.word_count;
             setWordCount(wc);
@@ -152,27 +151,26 @@ export default function Show({ prompt }: Props) {
                     </Link>
 
                     {/* Prompt card */}
-                    <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm p-6">
+                    <Card>
                         <h3 className="font-serif text-xl text-amber-950">{prompt.title}</h3>
                         <div className="mt-2 flex gap-2">
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${categoryBadgeColors[prompt.category] ?? 'bg-gray-100 text-gray-800'}`}>
+                            <Badge variant={categoryBadgeVariant[prompt.category] ?? 'gray'}>
                                 {prompt.category}
-                            </span>
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${difficultyBadgeColors[prompt.difficulty] ?? 'bg-gray-100 text-gray-800'}`}>
+                            </Badge>
+                            <Badge variant={difficultyBadgeVariant[prompt.difficulty] ?? 'gray'}>
                                 {prompt.difficulty}
-                            </span>
+                            </Badge>
                         </div>
                         <p className="mt-4 text-sm text-amber-700/80 leading-relaxed">{prompt.body}</p>
-                    </div>
+                    </Card>
 
                     {/* Writing section */}
-                    <div className="mt-6 rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm p-6">
+                    <Card className="mt-6">
                         <form onSubmit={quickCheck}>
-                            <textarea
+                            <Textarea
                                 value={text}
-                                onChange={(e) => setText(e.target.value)}
+                                onChange={(e) => { setText(e.target.value); setChecked(false); }}
                                 rows={10}
-                                className="w-full rounded-xl border-amber-200 bg-white/80 shadow-sm transition-colors focus:border-amber-500 focus:ring-amber-500 font-serif text-amber-950/80 leading-relaxed"
                                 placeholder="Write your response here..."
                             />
                             <div className="mt-2 text-xs text-amber-700/50">
@@ -198,17 +196,17 @@ export default function Show({ prompt }: Props) {
                         </form>
 
                         {error && (
-                            <div className="mt-4 rounded-xl bg-rose-50 border border-rose-200/60 p-3 text-sm text-rose-700">
+                            <Alert variant="error" className="mt-4">
                                 {error}
-                            </div>
+                            </Alert>
                         )}
 
                         {saved && (
-                            <div className="mt-4 rounded-xl bg-emerald-50 border border-emerald-200/60 p-3 text-sm text-emerald-700">
+                            <Alert variant="success" className="mt-4">
                                 Analysis saved to your history.
-                            </div>
+                            </Alert>
                         )}
-                    </div>
+                    </Card>
 
                     {/* Score banner */}
                     {score !== null && (
@@ -224,60 +222,22 @@ export default function Show({ prompt }: Props) {
                     )}
 
                     {/* Error list */}
-                    {matches.length > 0 && (
-                        <div className="mt-6 rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm">
-                            <div className="p-6">
-                                <h3 className="mb-4 font-serif text-lg text-amber-950">
-                                    Found {matches.length} issue{matches.length !== 1 ? 's' : ''}
-                                </h3>
-                                <ul className="space-y-4">
-                                    {matches.map((match, i) => (
-                                        <li key={i} className="rounded-xl border border-rose-200/60 bg-rose-50/50 p-4">
-                                            <p className="text-sm font-medium text-rose-800">
-                                                {match.message}
-                                            </p>
-                                            {match.rule && (
-                                                <p className="mt-1 text-xs text-amber-700/50">
-                                                    Rule: {match.rule.id} — {match.rule.description}
-                                                </p>
-                                            )}
-                                            {match.replacements && match.replacements.length > 0 && (
-                                                <div className="mt-2 flex flex-wrap gap-1">
-                                                    <span className="text-xs text-amber-700/50">Suggestions:</span>
-                                                    {match.replacements.slice(0, 5).map((r, j) => (
-                                                        <span
-                                                            key={j}
-                                                            className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800"
-                                                        >
-                                                            {r.value}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    )}
+                    <div className="mt-6">
+                        <MatchList matches={matches} checked={checked} />
+                    </div>
 
                     {/* Category breakdown */}
                     {matches.length > 0 && Object.keys(categoryBreakdown).length > 0 && (
-                        <div className="mt-6 rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm">
-                            <div className="p-6">
-                                <h3 className="mb-3 font-serif text-lg text-amber-950">Category Breakdown</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {Object.entries(categoryBreakdown).map(([cat, count]) => (
-                                        <span
-                                            key={cat}
-                                            className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800"
-                                        >
-                                            {cat}: {count}
-                                        </span>
-                                    ))}
-                                </div>
+                        <Card className="mt-6">
+                            <h3 className="mb-3 font-serif text-lg text-amber-950">Category Breakdown</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {Object.entries(categoryBreakdown).map(([cat, count]) => (
+                                    <Badge key={cat} className="px-3 py-1">
+                                        {cat}: {count}
+                                    </Badge>
+                                ))}
                             </div>
-                        </div>
+                        </Card>
                     )}
                 </div>
             </div>

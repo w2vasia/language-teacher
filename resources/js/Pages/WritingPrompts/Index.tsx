@@ -1,4 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import Badge, { BadgeVariant } from '@/Components/Badge';
+import Card from '@/Components/Card';
+import TabSelector from '@/Components/TabSelector';
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -14,13 +17,17 @@ interface Props {
     promptsByCategory: Record<string, WritingPrompt[]>;
 }
 
-const difficultyColors: Record<string, string> = {
-    beginner: 'bg-emerald-100 text-emerald-800',
-    intermediate: 'bg-amber-100 text-amber-800',
-    advanced: 'bg-rose-100 text-rose-800',
+const difficultyVariant = (difficulty: string): BadgeVariant => {
+    const map: Record<string, BadgeVariant> = {
+        beginner: 'emerald',
+        intermediate: 'amber',
+        advanced: 'rose',
+    };
+    return map[difficulty] ?? 'gray';
 };
 
 const tabs = ['All', 'General', 'IELTS', 'TOEFL', 'Business'];
+const tabOptions = tabs.map((t) => ({ label: t, value: t }));
 
 function PromptCard({ prompt }: { prompt: WritingPrompt }) {
     return (
@@ -32,11 +39,9 @@ function PromptCard({ prompt }: { prompt: WritingPrompt }) {
                 <h3 className="font-serif text-base text-amber-950 group-hover:text-amber-800">
                     {prompt.title}
                 </h3>
-                <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${difficultyColors[prompt.difficulty] ?? 'bg-gray-100 text-gray-800'}`}
-                >
+                <Badge variant={difficultyVariant(prompt.difficulty)} className="shrink-0">
                     {prompt.difficulty}
-                </span>
+                </Badge>
             </div>
             <p className="mt-2 line-clamp-2 text-sm text-amber-700/60">
                 {prompt.body}
@@ -73,21 +78,11 @@ export default function Index({ promptsByCategory }: Props) {
                     <h2 className="font-serif text-xl leading-tight text-amber-950">
                         Writing Prompts
                     </h2>
-                    <div className="flex gap-1 rounded-xl bg-amber-100/50 p-1">
-                        {tabs.map((tab) => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveCategory(tab)}
-                                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                                    activeCategory === tab
-                                        ? 'bg-white text-amber-900 shadow-sm'
-                                        : 'text-amber-700/60 hover:text-amber-800'
-                                }`}
-                            >
-                                {tab}
-                            </button>
-                        ))}
-                    </div>
+                    <TabSelector
+                        options={tabOptions}
+                        value={activeCategory}
+                        onChange={setActiveCategory}
+                    />
                 </div>
             }
         >
@@ -96,9 +91,9 @@ export default function Index({ promptsByCategory }: Props) {
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     {!hasPrompts ? (
-                        <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm p-6 text-center text-amber-700/60">
+                        <Card className="text-center text-amber-700/60">
                             No prompts available.
-                        </div>
+                        </Card>
                     ) : activeCategory === 'All' ? (
                         <div className="space-y-8">
                             {filteredCategories.map((category) => (

@@ -1,4 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import Badge from '@/Components/Badge';
+import Card from '@/Components/Card';
+import StatCard from '@/Components/StatCard';
 import { Head } from '@inertiajs/react';
 
 interface ErrorTrend {
@@ -33,39 +36,11 @@ interface Props {
     weakAreas: WeakArea[];
 }
 
-function StatCard({ label, value, previousValue, invertColor = false }: {
-    label: string;
-    value: string | number;
-    previousValue?: number;
-    invertColor?: boolean;
-}) {
-    const current = typeof value === 'number' ? value : parseFloat(value);
-    const diff = previousValue !== undefined && previousValue > 0
-        ? Math.round(((current - previousValue) / previousValue) * 100)
-        : null;
-
-    const isPositive = invertColor ? diff !== null && diff > 0 : diff !== null && diff < 0;
-
-    return (
-        <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm p-6">
-            <dt className="text-sm font-medium text-amber-700/60">{label}</dt>
-            <dd className="mt-1 flex items-baseline gap-2">
-                <span className="font-serif text-3xl text-amber-950">{value}</span>
-                {diff !== null && diff !== 0 && (
-                    <span className={`text-sm font-medium ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {diff > 0 ? '\u2191' : '\u2193'} {Math.abs(diff)}%
-                    </span>
-                )}
-            </dd>
-        </div>
-    );
-}
-
 function MiniBarChart({ data }: { data: ErrorTrend[] }) {
     const max = Math.max(...data.map((d) => d.error_count), 1);
 
     return (
-        <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm p-6">
+        <Card>
             <h3 className="mb-4 text-sm font-medium text-amber-700/60">7-Day Error Trend</h3>
             <div className="flex items-end gap-1" style={{ height: 120 }}>
                 {data.slice(-7).map((d) => (
@@ -83,7 +58,7 @@ function MiniBarChart({ data }: { data: ErrorTrend[] }) {
                     </div>
                 ))}
             </div>
-        </div>
+        </Card>
     );
 }
 
@@ -110,7 +85,7 @@ export default function Dashboard({ stats, weakAreas }: Props) {
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         <MiniBarChart data={stats.error_trend} />
 
-                        <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm p-6">
+                        <Card>
                             <h3 className="mb-4 text-sm font-medium text-amber-700/60">
                                 Weak Areas
                             </h3>
@@ -123,14 +98,14 @@ export default function Dashboard({ stats, weakAreas }: Props) {
                                             <span className="text-sm font-medium capitalize text-amber-800">
                                                 {area.name}
                                             </span>
-                                            <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700">
+                                            <Badge variant="rose">
                                                 {area.count}
-                                            </span>
+                                            </Badge>
                                         </li>
                                     ))}
                                 </ul>
                             )}
-                        </div>
+                        </Card>
                     </div>
                 </div>
             </div>

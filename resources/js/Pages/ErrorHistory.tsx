@@ -1,5 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import Badge from '@/Components/Badge';
+import Card from '@/Components/Card';
+import { Head, Link, router } from '@inertiajs/react';
 
 interface ErrorItem {
     id: number;
@@ -28,9 +30,10 @@ interface PaginatedData {
 
 interface Props {
     submissions: PaginatedData;
+    showAll: boolean;
 }
 
-export default function ErrorHistory({ submissions }: Props) {
+export default function ErrorHistory({ submissions, showAll }: Props) {
     return (
         <AuthenticatedLayout
             header={
@@ -43,14 +46,24 @@ export default function ErrorHistory({ submissions }: Props) {
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <div className="mb-4 flex justify-end">
+                        <button
+                            onClick={() => router.get(route('error-history'), { show_all: showAll ? undefined : '1' }, { preserveState: true })}
+                            className="flex items-center gap-2 rounded-full border border-amber-200/60 bg-white/70 px-4 py-2 text-sm font-medium text-amber-800 transition-all duration-200 hover:border-amber-300 hover:text-amber-950"
+                        >
+                            <span className={`inline-block h-3 w-3 rounded-full transition-colors ${showAll ? 'bg-amber-500' : 'bg-amber-200'}`} />
+                            {showAll ? 'Showing all submissions' : 'Only with errors'}
+                        </button>
+                    </div>
+
                     {submissions.data.length === 0 ? (
-                        <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm p-6 text-center text-amber-700/60">
+                        <Card className="text-center text-amber-700/60">
                             No submissions yet. Go to Text Check to analyze some text.
-                        </div>
+                        </Card>
                     ) : (
                         <div className="space-y-4">
                             {submissions.data.map((sub) => (
-                                <div key={sub.id} className="overflow-hidden rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm">
+                                <Card key={sub.id} padding="none" className="overflow-hidden">
                                     <div className="border-b border-amber-200/30 p-4">
                                         <div className="flex items-center justify-between">
                                             <div>
@@ -61,9 +74,9 @@ export default function ErrorHistory({ submissions }: Props) {
                                                     {sub.original_text}
                                                 </p>
                                             </div>
-                                            <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700">
-                                                {sub.errors.length} error{sub.errors.length !== 1 ? 's' : ''}
-                                            </span>
+                                            <Badge variant={sub.errors.length > 0 ? 'rose' : 'emerald'}>
+                                                {sub.errors.length > 0 ? `${sub.errors.length} error${sub.errors.length !== 1 ? 's' : ''}` : 'All good'}
+                                            </Badge>
                                         </div>
                                     </div>
                                     {sub.errors.length > 0 && (
@@ -76,24 +89,24 @@ export default function ErrorHistory({ submissions }: Props) {
                                                             {err.replacement_suggestions?.length > 0 && (
                                                                 <div className="mt-1 flex flex-wrap gap-1">
                                                                     {err.replacement_suggestions.slice(0, 3).map((s, i) => (
-                                                                        <span key={i} className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">
+                                                                        <Badge key={i} variant="emerald">
                                                                             {s}
-                                                                        </span>
+                                                                        </Badge>
                                                                     ))}
                                                                 </div>
                                                             )}
                                                         </div>
                                                         {err.error_category && (
-                                                            <span className="ml-2 shrink-0 rounded-full bg-amber-100/80 px-2.5 py-0.5 text-xs capitalize text-amber-700">
+                                                            <Badge variant="amber" className="ml-2 shrink-0 capitalize">
                                                                 {err.error_category.name}
-                                                            </span>
+                                                            </Badge>
                                                         )}
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
-                                </div>
+                                </Card>
                             ))}
 
                             <div className="flex justify-between">

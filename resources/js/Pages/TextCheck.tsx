@@ -1,16 +1,11 @@
+import Alert from '@/Components/Alert';
+import Card from '@/Components/Card';
+import Textarea from '@/Components/Textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import MatchList, { Match } from '@/Components/MatchList';
 import { Head } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import axios from 'axios';
-
-interface Match {
-    message: string;
-    context?: { text: string; offset: number; length: number };
-    offset: number;
-    length: number;
-    replacements?: { value: string }[];
-    rule?: { id: string; description: string; category?: { id: string } };
-}
 
 interface AnalyzeResponse {
     submission: { id: number };
@@ -21,6 +16,7 @@ interface AnalyzeResponse {
 export default function TextCheck() {
     const [text, setText] = useState('');
     const [matches, setMatches] = useState<Match[]>([]);
+    const [checked, setChecked] = useState(false);
     const [loading, setLoading] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -33,6 +29,7 @@ export default function TextCheck() {
         try {
             const { data } = await axios.post('/api/v1/check-text', { text });
             setMatches(data.matches);
+            setChecked(true);
         } catch {
             setError('Failed to check text. Please try again.');
         } finally {
@@ -47,6 +44,7 @@ export default function TextCheck() {
         try {
             const { data } = await axios.post<AnalyzeResponse>('/api/v1/text/analyze', { text });
             setMatches(data.matches);
+            setChecked(true);
             setSaved(true);
         } catch {
             setError('Failed to analyze text. Please try again.');
@@ -67,14 +65,13 @@ export default function TextCheck() {
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm">
+                    <Card padding="none">
                         <div className="p-6">
                             <form onSubmit={quickCheck}>
-                                <textarea
+                                <Textarea
                                     value={text}
-                                    onChange={(e) => setText(e.target.value)}
+                                    onChange={(e) => { setText(e.target.value); setChecked(false); }}
                                     rows={8}
-                                    className="w-full rounded-xl border-amber-200 bg-white/80 shadow-sm transition-colors focus:border-amber-500 focus:ring-amber-500 font-serif text-amber-950/80 leading-relaxed"
                                     placeholder="Paste or type your text here..."
                                 />
                                 <div className="mt-4 flex gap-3">
@@ -97,55 +94,22 @@ export default function TextCheck() {
                             </form>
 
                             {error && (
-                                <div className="mt-4 rounded-xl bg-rose-50 border border-rose-200/60 p-3 text-sm text-rose-700">
+                                <Alert variant="error" className="mt-4">
                                     {error}
-                                </div>
+                                </Alert>
                             )}
 
                             {saved && (
-                                <div className="mt-4 rounded-xl bg-emerald-50 border border-emerald-200/60 p-3 text-sm text-emerald-700">
+                                <Alert variant="success" className="mt-4">
                                     Analysis saved to your history.
-                                </div>
+                                </Alert>
                             )}
                         </div>
-                    </div>
+                    </Card>
 
-                    {matches.length > 0 && (
-                        <div className="mt-6 rounded-2xl border border-amber-200/40 bg-white/60 backdrop-blur-sm">
-                            <div className="p-6">
-                                <h3 className="mb-4 font-serif text-lg text-amber-950">
-                                    Found {matches.length} issue{matches.length !== 1 ? 's' : ''}
-                                </h3>
-                                <ul className="space-y-4">
-                                    {matches.map((match, i) => (
-                                        <li key={i} className="rounded-xl border border-rose-200/60 bg-rose-50/50 p-4">
-                                            <p className="text-sm font-medium text-rose-800">
-                                                {match.message}
-                                            </p>
-                                            {match.rule && (
-                                                <p className="mt-1 text-xs text-amber-700/50">
-                                                    Rule: {match.rule.id} — {match.rule.description}
-                                                </p>
-                                            )}
-                                            {match.replacements && match.replacements.length > 0 && (
-                                                <div className="mt-2 flex flex-wrap gap-1">
-                                                    <span className="text-xs text-amber-700/50">Suggestions:</span>
-                                                    {match.replacements.slice(0, 5).map((r, j) => (
-                                                        <span
-                                                            key={j}
-                                                            className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800"
-                                                        >
-                                                            {r.value}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    )}
+                    <div className="mt-6">
+                        <MatchList matches={matches} checked={checked} />
+                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>
