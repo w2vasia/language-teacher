@@ -10,14 +10,20 @@ class ErrorHistoryController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $submissions = $request->user()
+        $showAll = $request->boolean('show_all');
+
+        $query = $request->user()
             ->textSubmissions()
             ->with('errors.errorCategory')
-            ->latest()
-            ->paginate(15);
+            ->latest();
+
+        if (! $showAll) {
+            $query->whereHas('errors');
+        }
 
         return Inertia::render('ErrorHistory', [
-            'submissions' => $submissions,
+            'submissions' => $query->paginate(15)->withQueryString(),
+            'showAll' => $showAll,
         ]);
     }
 }

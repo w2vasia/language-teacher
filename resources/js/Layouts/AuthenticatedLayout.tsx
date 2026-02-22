@@ -54,6 +54,12 @@ export default function Authenticated({
                                     Prompts
                                 </NavLink>
                                 <NavLink
+                                    href={route('practice')}
+                                    active={route().current('practice')}
+                                >
+                                    Practice
+                                </NavLink>
+                                <NavLink
                                     href={route('error-history')}
                                     active={route().current('error-history')}
                                 >
@@ -180,6 +186,12 @@ export default function Authenticated({
                             active={route().current('writing-prompts.*')}
                         >
                             Prompts
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('practice')}
+                            active={route().current('practice')}
+                        >
+                            Practice
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             href={route('error-history')}

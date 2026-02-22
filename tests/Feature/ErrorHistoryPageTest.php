@@ -26,9 +26,39 @@ class ErrorHistoryPageTest extends TestCase
         $response = $this->actingAs($user)->get('/error-history');
 
         $response->assertOk();
-        $response->assertInertia(fn($page) => $page
+        $response->assertInertia(fn ($page) => $page
             ->component('ErrorHistory')
             ->has('submissions.data', 1)
+        );
+    }
+
+    public function test_hides_submissions_without_errors_by_default(): void
+    {
+        $user = User::factory()->create();
+        $withErrors = TextSubmission::factory()->create(['user_id' => $user->id]);
+        Error::factory()->create(['text_submission_id' => $withErrors->id]);
+        TextSubmission::factory()->create(['user_id' => $user->id]); // no errors
+
+        $response = $this->actingAs($user)->get('/error-history');
+
+        $response->assertInertia(fn ($page) => $page
+            ->has('submissions.data', 1)
+            ->where('showAll', false)
+        );
+    }
+
+    public function test_show_all_includes_submissions_without_errors(): void
+    {
+        $user = User::factory()->create();
+        $withErrors = TextSubmission::factory()->create(['user_id' => $user->id]);
+        Error::factory()->create(['text_submission_id' => $withErrors->id]);
+        TextSubmission::factory()->create(['user_id' => $user->id]); // no errors
+
+        $response = $this->actingAs($user)->get('/error-history?show_all=1');
+
+        $response->assertInertia(fn ($page) => $page
+            ->has('submissions.data', 2)
+            ->where('showAll', true)
         );
     }
 }
