@@ -16,6 +16,7 @@ class CheckTextRequest extends FormRequest
         return [
             'text' => 'required|string|max:50000',
             'language' => 'sometimes|string',
+            'writing_prompt_id' => 'sometimes|nullable|exists:writing_prompts,id',
         ];
     }
 }

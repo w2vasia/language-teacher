@@ -23,6 +23,7 @@ class TextAnalysisController extends Controller
         $submission = TextSubmission::create([
             'user_id' => $request->user()->id,
             'original_text' => $request->validated('text'),
+            'writing_prompt_id' => $request->validated('writing_prompt_id'),
             'checked_at' => now(),
         ]);
 

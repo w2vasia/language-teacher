@@ -21,6 +21,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/text-check', \App\Http\Controllers\TextCheckController::class)->name('text-check');
     Route::get('/error-history', \App\Http\Controllers\ErrorHistoryController::class)->name('error-history');
     Route::get('/analytics', \App\Http\Controllers\AnalyticsPageController::class)->name('analytics');
+    Route::get('/writing-prompts', [\App\Http\Controllers\WritingPromptsPageController::class, 'index'])->name('writing-prompts.index');
+    Route::get('/writing-prompts/{writingPrompt}', [\App\Http\Controllers\WritingPromptsPageController::class, 'show'])->name('writing-prompts.show');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

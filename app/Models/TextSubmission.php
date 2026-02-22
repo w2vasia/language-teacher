@@ -11,7 +11,7 @@ class TextSubmission extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'original_text', 'word_count', 'checked_at'];
+    protected $fillable = ['user_id', 'original_text', 'word_count', 'checked_at', 'writing_prompt_id'];
 
     protected $casts = [
         'checked_at' => 'datetime',
@@ -29,6 +29,11 @@ class TextSubmission extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function writingPrompt(): BelongsTo
+    {
+        return $this->belongsTo(WritingPrompt::class);
     }
 
     public function errors(): HasMany

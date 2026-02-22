@@ -48,6 +48,12 @@ export default function Authenticated({
                                     Text Check
                                 </NavLink>
                                 <NavLink
+                                    href={route('writing-prompts.index')}
+                                    active={route().current('writing-prompts.*')}
+                                >
+                                    Prompts
+                                </NavLink>
+                                <NavLink
                                     href={route('error-history')}
                                     active={route().current('error-history')}
                                 >
@@ -168,6 +174,12 @@ export default function Authenticated({
                             active={route().current('text-check')}
                         >
                             Text Check
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('writing-prompts.index')}
+                            active={route().current('writing-prompts.*')}
+                        >
+                            Prompts
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             href={route('error-history')}

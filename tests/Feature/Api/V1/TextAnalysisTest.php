@@ -68,4 +68,55 @@ class TextAnalysisTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors('text');
     }
+
+    public function test_analyze_accepts_writing_prompt_id(): void
+    {
+        $user = User::factory()->create();
+        $prompt = \App\Models\WritingPrompt::factory()->create();
+
+        Http::fake(['*' => Http::response(['matches' => []])]);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->postJson('/api/v1/text/analyze', [
+                'text' => 'This is a test sentence for the prompt.',
+                'writing_prompt_id' => $prompt->id,
+            ]);
+
+        $response->assertCreated();
+        $this->assertDatabaseHas('text_submissions', [
+            'user_id' => $user->id,
+            'writing_prompt_id' => $prompt->id,
+        ]);
+    }
+
+    public function test_analyze_works_without_writing_prompt_id(): void
+    {
+        $user = User::factory()->create();
+
+        Http::fake(['*' => Http::response(['matches' => []])]);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->postJson('/api/v1/text/analyze', [
+                'text' => 'Just a regular text check.',
+            ]);
+
+        $response->assertCreated();
+        $this->assertDatabaseHas('text_submissions', [
+            'user_id' => $user->id,
+            'writing_prompt_id' => null,
+        ]);
+    }
+
+    public function test_analyze_rejects_invalid_writing_prompt_id(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->postJson('/api/v1/text/analyze', [
+                'text' => 'Some text here.',
+                'writing_prompt_id' => 99999,
+            ]);
+
+        $response->assertUnprocessable();
+    }
 }
