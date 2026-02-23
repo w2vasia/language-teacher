@@ -12,6 +12,7 @@ class TextSubmissionResource extends JsonResource
         return [
             'id' => $this->id,
             'original_text' => $this->original_text,
+            'translated_text' => $this->translated_text,
             'word_count' => $this->word_count,
             'writing_prompt_id' => $this->writing_prompt_id,
             'score' => $this->when($this->relationLoaded('errors'), function () {

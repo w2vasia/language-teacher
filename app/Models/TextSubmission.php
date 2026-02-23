@@ -11,7 +11,7 @@ class TextSubmission extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'original_text', 'word_count', 'checked_at', 'writing_prompt_id'];
+    protected $fillable = ['user_id', 'original_text', 'translated_text', 'word_count', 'checked_at', 'writing_prompt_id'];
 
     protected $casts = [
         'checked_at' => 'datetime',

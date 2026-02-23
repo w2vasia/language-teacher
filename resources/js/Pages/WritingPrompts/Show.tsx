@@ -29,6 +29,7 @@ interface AnalyzeResponse {
     };
     errors: { message: string; category?: { name: string; slug: string } }[];
     matches: Match[];
+    translation: string;
 }
 
 const categoryBadgeVariant: Record<string, BadgeVariant> = {
@@ -79,6 +80,7 @@ export default function Show({ prompt }: Props) {
     const [error, setError] = useState<string | null>(null);
     const [score, setScore] = useState<number | null>(null);
     const [wordCount, setWordCount] = useState(0);
+    const [translation, setTranslation] = useState<string | null>(null);
 
     const liveWordCount = clientWordCount(text);
 
@@ -91,6 +93,7 @@ export default function Show({ prompt }: Props) {
         try {
             const { data } = await axios.post('/api/v1/check-text', { text });
             setMatches(data.matches);
+            setTranslation(data.translation);
             setChecked(true);
         } catch {
             setError('Failed to check text. Please try again.');
@@ -110,6 +113,7 @@ export default function Show({ prompt }: Props) {
                 writing_prompt_id: prompt.id,
             });
             setMatches(data.matches);
+            setTranslation(data.translation);
             setChecked(true);
             setSaved(true);
             const wc = data.submission.word_count;
@@ -207,6 +211,26 @@ export default function Show({ prompt }: Props) {
                             </Alert>
                         )}
                     </Card>
+
+                    {/* Translation */}
+                    {(loading || translation) && (
+                        <Card className="mt-6">
+                            <h3 className="mb-3 font-serif text-sm font-medium text-amber-800/70">
+                                Translation
+                            </h3>
+                            {loading ? (
+                                <div className="animate-pulse space-y-2">
+                                    <div className="h-4 w-3/4 rounded bg-amber-100"></div>
+                                    <div className="h-4 w-1/2 rounded bg-amber-100"></div>
+                                    <div className="h-4 w-5/6 rounded bg-amber-100"></div>
+                                </div>
+                            ) : (
+                                <p className="whitespace-pre-wrap font-serif leading-relaxed text-amber-950/80">
+                                    {translation}
+                                </p>
+                            )}
+                        </Card>
+                    )}
 
                     {/* Score banner */}
                     {score !== null && (

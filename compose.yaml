@@ -25,6 +25,7 @@ services:
             - pgsql
             - redis
             - languagetool
+            - libretranslate
     pgsql:
         image: 'postgres:18-alpine'
         ports:
@@ -65,6 +66,19 @@ services:
                 - ping
             retries: 3
             timeout: 5s
+    libretranslate:
+        image: 'libretranslate/libretranslate:latest'
+        ports:
+            - '${FORWARD_LIBRETRANSLATE_PORT:-5100}:5000'
+        environment:
+            LT_LOAD_ONLY: 'en,ru'
+        networks:
+            - sail
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:5000/languages']
+            interval: 30s
+            retries: 3
+            timeout: 10s
     languagetool:
         image: 'erikvl87/languagetool:latest'
         ports:

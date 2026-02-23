@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\ErrorAnalysisService;
+use App\Services\GrammarTopicService;
 use App\Services\ProgressTrackerService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ class AnalyticsPageController extends Controller
         Request $request,
         ProgressTrackerService $progressTracker,
         ErrorAnalysisService $errorAnalysis,
+        GrammarTopicService $grammarTopics,
     ): Response|RedirectResponse {
         $days = $this->parseDays($request);
 
@@ -28,7 +30,7 @@ class AnalyticsPageController extends Controller
 
         return Inertia::render('Analytics', [
             'stats' => $progressTracker->getDashboardStats($user, $days),
-            'weakAreas' => $progressTracker->getWeakAreas($user),
+            'topicsToReview' => $grammarTopics->getTopicsToReview($user, $days),
             'errorSummary' => $errorAnalysis->getErrorSummary($user),
             'days' => $days,
         ]);

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api\V1;
 
+use App\Contracts\TranslationDriver;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -15,6 +16,14 @@ class TextAnalysisTest extends TestCase
     {
         parent::setUp();
         $this->seed(\Database\Seeders\ErrorCategorySeeder::class);
+
+        $this->app->instance(TranslationDriver::class, new class implements TranslationDriver
+        {
+            public function translate(string $text, string $from, string $to): string
+            {
+                return 'translated: '.$text;
+            }
+        });
     }
 
     public function test_unauthenticated_returns_401(): void
@@ -50,13 +59,31 @@ class TextAnalysisTest extends TestCase
             ->postJson('/api/v1/text/analyze', ['text' => 'Ths is wrong']);
 
         $response->assertCreated()
-            ->assertJsonStructure(['submission', 'errors', 'matches']);
+            ->assertJsonStructure(['submission', 'errors', 'matches', 'translation']);
 
         $this->assertDatabaseHas('text_submissions', [
             'user_id' => $user->id,
             'original_text' => 'Ths is wrong',
         ]);
         $this->assertDatabaseHas('errors', ['message' => 'Spelling mistake']);
+    }
+
+    public function test_stores_translation_in_submission(): void
+    {
+        Http::fake(['*' => Http::response(['matches' => []])]);
+
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->postJson('/api/v1/text/analyze', ['text' => 'Hello world']);
+
+        $response->assertCreated()
+            ->assertJsonPath('translation', 'translated: Hello world');
+
+        $this->assertDatabaseHas('text_submissions', [
+            'user_id' => $user->id,
+            'translated_text' => 'translated: Hello world',
+        ]);
     }
 
     public function test_validates_text_required(): void

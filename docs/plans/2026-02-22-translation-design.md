@@ -50,13 +50,12 @@ Hardcoded `ru` in config. Later: per-user setting.
 
 ## Implementation Order
 
-1. LibreTranslate Docker service
-2. `config/translation.php`
-3. `TranslationDriver` interface + `LibreTranslateDriver` + `DeepLDriver` (stub)
-4. `TranslationService` (resolves driver from config)
-5. Service provider registration
-6. Migration: `translated_text` on `text_submissions`
-7. API controllers: call TranslationService in both endpoints
-8. `TextSubmissionResource`: expose `translated_text`
-9. Frontend: two-column layout + translation display
-10. Tests: feature + unit
+- [x] LibreTranslate Docker service
+- [x] `config/translation.php`
+- [x] `TranslationDriver` interface + `LibreTranslateDriver` + `DeepLDriver` (stub)
+- [x] `TranslationService` (resolves driver from config) + service provider registration
+- [x] Migration: `translated_text` on `text_submissions`
+- [x] API controllers: call TranslationService in both endpoints
+- [x] `TextSubmissionResource`: expose `translated_text`
+- [x] Frontend: two-column layout + translation display
+- [x] Tests: feature + unit

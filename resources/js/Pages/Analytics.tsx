@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 import Badge from '@/Components/Badge';
 import Card from '@/Components/Card';
 import StatCard from '@/Components/StatCard';
@@ -26,15 +27,19 @@ interface Stats {
     };
 }
 
-interface WeakArea {
-    name: string;
-    slug: string;
-    count: number;
+interface GrammarTopic {
+    topic: string;
+    error_count: number;
+    trend: 'better' | 'worse' | 'stable' | 'new';
+    change: number;
+    examples: { context: string; message: string; suggestion: string }[];
+    tip: string;
+    rules: string[];
 }
 
 interface Props {
     stats: Stats;
-    weakAreas: WeakArea[];
+    topicsToReview: GrammarTopic[];
     errorSummary: Record<string, number>;
     days: number | null;
 }
@@ -165,9 +170,79 @@ function ErrorRateChart({ data }: { data: ErrorTrend[] }) {
     );
 }
 
+const TREND_CONFIG = {
+    worse: { icon: '\u2191', color: 'text-rose-600', bg: 'bg-rose-50' },
+    better: { icon: '\u2193', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    stable: { icon: '\u2192', color: 'text-gray-500', bg: 'bg-gray-50' },
+    new: { icon: '\u2726', color: 'text-amber-600', bg: 'bg-amber-50' },
+} as const;
+
+function TopicCard({ topic }: { topic: GrammarTopic }) {
+    const [expanded, setExpanded] = useState(false);
+    const trend = TREND_CONFIG[topic.trend];
+
+    return (
+        <Card padding="none">
+            <button
+                type="button"
+                className="flex w-full items-center gap-3 p-4 text-left"
+                onClick={() => setExpanded(!expanded)}
+            >
+                <span className="flex-1 text-sm font-medium text-amber-900">
+                    {topic.topic}
+                </span>
+                <Badge variant="rose">{topic.error_count}</Badge>
+                {topic.trend !== 'stable' && (
+                    <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${trend.bg} ${trend.color}`}
+                    >
+                        {trend.icon}{' '}
+                        {topic.change > 0 ? topic.change : ''}
+                    </span>
+                )}
+                <span
+                    className={`text-xs text-amber-400 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                >
+                    &#9662;
+                </span>
+            </button>
+
+            {expanded && (
+                <div className="border-t border-amber-100 px-4 pb-4 pt-3">
+                    {topic.examples.length > 0 && (
+                        <div className="mb-3 space-y-2">
+                            {topic.examples.map((ex, i) => (
+                                <div
+                                    key={i}
+                                    className="rounded-lg bg-amber-50/60 px-3 py-2 text-sm"
+                                >
+                                    <p className="italic text-amber-700/70">
+                                        &ldquo;{ex.context}&rdquo;
+                                    </p>
+                                    <p className="mt-0.5 text-xs text-amber-600">
+                                        {ex.message}
+                                        {ex.suggestion && (
+                                            <span className="ml-1 font-medium text-emerald-700">
+                                                &rarr; {ex.suggestion}
+                                            </span>
+                                        )}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    <p className="text-xs text-amber-600/60">
+                        {topic.tip}
+                    </p>
+                </div>
+            )}
+        </Card>
+    );
+}
+
 export default function Analytics({
     stats,
-    weakAreas,
+    topicsToReview,
     errorSummary,
     days,
 }: Props) {
@@ -244,35 +319,28 @@ export default function Analytics({
                         <ErrorRateChart data={stats.error_trend} />
                     </div>
 
-                    <Card>
+                    <div>
                         <h3 className="mb-4 text-sm font-medium text-amber-700/60">
-                            Ranked Weak Areas
+                            Grammar Topics to Review
                         </h3>
-                        {weakAreas.length === 0 ? (
-                            <p className="text-sm text-amber-600/40">
-                                No data yet.
-                            </p>
+                        {topicsToReview.length === 0 ? (
+                            <Card>
+                                <p className="text-sm text-amber-600/40">
+                                    No errors yet &mdash; submit some text to
+                                    see which topics to review.
+                                </p>
+                            </Card>
                         ) : (
-                            <ol className="space-y-2">
-                                {weakAreas.map((area, i) => (
-                                    <li
-                                        key={area.slug}
-                                        className="flex items-center gap-3"
-                                    >
-                                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-800">
-                                            {i + 1}
-                                        </span>
-                                        <span className="text-sm font-medium capitalize text-amber-800">
-                                            {area.name}
-                                        </span>
-                                        <Badge variant="rose">
-                                            {area.count} errors
-                                        </Badge>
-                                    </li>
+                            <div className="space-y-3">
+                                {topicsToReview.map((topic) => (
+                                    <TopicCard
+                                        key={topic.topic}
+                                        topic={topic}
+                                    />
                                 ))}
-                            </ol>
+                            </div>
                         )}
-                    </Card>
+                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>
