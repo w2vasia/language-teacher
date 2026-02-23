@@ -5,7 +5,6 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -53,8 +52,13 @@ class User extends Authenticatable
         return $this->hasMany(TextSubmission::class);
     }
 
-    public function errors(): HasManyThrough
+    public function errors(): HasMany
     {
-        return $this->hasManyThrough(Error::class, TextSubmission::class);
+        return $this->hasMany(Error::class);
+    }
+
+    public function practiceSessions(): HasMany
+    {
+        return $this->hasMany(PracticeSession::class);
     }
 }

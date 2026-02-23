@@ -11,7 +11,10 @@ class AnalyticsController extends Controller
 {
     public function dashboard(Request $request, ProgressTrackerService $service): JsonResponse
     {
-        return response()->json($service->getDashboardStats($request->user()));
+        $days = $request->query('days');
+        $parsedDays = $days === 'all' ? null : (int) ($days ?? 7);
+
+        return response()->json($service->getDashboardStats($request->user(), $parsedDays));
     }
 
     public function weakAreas(Request $request, ProgressTrackerService $service): JsonResponse

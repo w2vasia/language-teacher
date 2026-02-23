@@ -18,8 +18,17 @@ class ErrorFactory extends Factory
             'offset' => fake()->numberBetween(0, 100),
             'length' => fake()->numberBetween(1, 20),
             'replacement_suggestions' => [fake()->word()],
-            'rule_id' => 'RULE_' . fake()->numberBetween(1, 100),
+            'rule_id' => 'RULE_'.fake()->numberBetween(1, 100),
             'rule_description' => fake()->sentence(),
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterMaking(function (\App\Models\Error $error) {
+            if (! $error->user_id && $error->text_submission_id) {
+                $error->user_id = TextSubmission::find($error->text_submission_id)?->user_id;
+            }
+        });
     }
 }
