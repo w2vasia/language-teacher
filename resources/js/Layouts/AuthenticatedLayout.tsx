@@ -15,16 +15,21 @@ export default function Authenticated({
         useState(false);
 
     return (
-        <div className="relative min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-amber-50">
+        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-amber-50 via-orange-50/30 to-amber-50">
             {/* Grain overlay */}
             <div
-                className="pointer-events-none fixed inset-0 z-50 opacity-[0.03]"
+                className="pointer-events-none fixed inset-0 z-[5] opacity-[0.03]"
                 style={{
                     backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
                 }}
             />
 
-            <nav className="relative z-10 border-b border-amber-200/40 bg-white/60 backdrop-blur-sm">
+            {/* Decorative blobs */}
+            <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-amber-200/30 blur-3xl" />
+            <div className="pointer-events-none absolute top-1/3 -left-32 h-80 w-80 rounded-full bg-orange-200/20 blur-3xl" />
+            <div className="pointer-events-none absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-rose-200/20 blur-3xl" />
+
+            <nav className="relative z-20 border-b border-amber-200/40 bg-white/60 backdrop-blur-sm">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
@@ -64,12 +69,6 @@ export default function Authenticated({
                                     active={route().current('error-history')}
                                 >
                                     Error History
-                                </NavLink>
-                                <NavLink
-                                    href={route('analytics')}
-                                    active={route().current('analytics')}
-                                >
-                                    Analytics
                                 </NavLink>
                             </div>
                         </div>
@@ -198,12 +197,6 @@ export default function Authenticated({
                             active={route().current('error-history')}
                         >
                             Error History
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('analytics')}
-                            active={route().current('analytics')}
-                        >
-                            Analytics
                         </ResponsiveNavLink>
                     </div>
 

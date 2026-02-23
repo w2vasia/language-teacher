@@ -100,10 +100,7 @@ class GrammarTopicService
      */
     private function getRuleCounts(User $user, ?int $days, string $period): array
     {
-        $query = Error::whereIn(
-            'text_submission_id',
-            $user->textSubmissions()->select('id')
-        );
+        $query = Error::where('user_id', $user->id);
 
         if ($days !== null) {
             $currentStart = Carbon::today()->subDays($days - 1);
@@ -176,10 +173,8 @@ class GrammarTopicService
      */
     private function getExamples(User $user, array $ruleIds, ?int $days): array
     {
-        $query = Error::whereIn(
-            'text_submission_id',
-            $user->textSubmissions()->select('id')
-        )->whereIn('rule_id', $ruleIds);
+        $query = Error::where('user_id', $user->id)
+            ->whereIn('rule_id', $ruleIds);
 
         if ($days !== null) {
             $query->where('errors.created_at', '>=', Carbon::today()->subDays($days - 1));

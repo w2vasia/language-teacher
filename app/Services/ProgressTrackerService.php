@@ -70,10 +70,7 @@ class ProgressTrackerService
 
     public function getWeakAreas(User $user, int $limit = 5): array
     {
-        return \App\Models\Error::whereIn(
-            'text_submission_id',
-            $user->textSubmissions()->select('id')
-        )
+        return \App\Models\Error::where('user_id', $user->id)
             ->join('error_categories', 'errors.error_category_id', '=', 'error_categories.id')
             ->selectRaw('error_categories.name, error_categories.slug, count(*) as count')
             ->groupBy('error_categories.name', 'error_categories.slug')

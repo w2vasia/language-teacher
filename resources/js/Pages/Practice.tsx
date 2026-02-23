@@ -1,6 +1,7 @@
 import Alert from '@/Components/Alert';
 import Badge from '@/Components/Badge';
 import Card from '@/Components/Card';
+import TabSelector from '@/Components/TabSelector';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
@@ -13,13 +14,19 @@ interface WeakCategory {
 }
 
 interface Exercise {
-    type: 'fix_the_sentence' | 'multiple_choice' | 'fill_in_the_blank';
+    type: 'fix_the_sentence' | 'multiple_choice' | 'fill_in_the_blank' | 'translate_to_english';
     instruction: string;
     sentence?: string;
     options?: string[];
     correct_answer?: string;
     correct_index?: number;
 }
+
+const DIFFICULTY_OPTIONS = [
+    { label: 'Beginner', value: 'beginner' },
+    { label: 'Intermediate', value: 'intermediate' },
+    { label: 'Advanced', value: 'advanced' },
+];
 
 interface CheckResult {
     correct: boolean;
@@ -31,13 +38,16 @@ type Stage = 'idle' | 'loading' | 'practicing' | 'checking' | 'result' | 'summar
 export default function Practice({ weakCategories }: { weakCategories: WeakCategory[] }) {
     const [stage, setStage] = useState<Stage>('idle');
     const [selectedCategory, setSelectedCategory] = useState(weakCategories[0]?.slug ?? '');
+    const [difficulty, setDifficulty] = useState('intermediate');
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [userAnswer, setUserAnswer] = useState('');
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [lastResult, setLastResult] = useState<CheckResult | null>(null);
     const [score, setScore] = useState(0);
+    const [sessionId, setSessionId] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [submittedAnswer, setSubmittedAnswer] = useState('');
 
     const currentExercise = exercises[currentIndex] ?? null;
 
@@ -48,10 +58,11 @@ export default function Practice({ weakCategories }: { weakCategories: WeakCateg
         setCurrentIndex(0);
 
         try {
-            const { data } = await axios.get<{ exercises: Exercise[] }>(
-                `/api/v1/practice/exercises?category=${selectedCategory}&count=5`
+            const { data } = await axios.get<{ exercises: Exercise[]; session_id: number }>(
+                `/api/v1/practice/exercises?category=${selectedCategory}&count=5&difficulty=${difficulty}`
             );
             setExercises(data.exercises);
+            setSessionId(data.session_id);
             setUserAnswer('');
             setSelectedOption(null);
             setStage('practicing');
@@ -70,12 +81,15 @@ export default function Practice({ weakCategories }: { weakCategories: WeakCateg
 
         if (!answer.trim()) return;
 
+        setSubmittedAnswer(answer);
         setStage('checking');
 
         try {
             const { data } = await axios.post<CheckResult>('/api/v1/practice/check', {
                 exercise: currentExercise,
                 user_answer: answer,
+                category: selectedCategory,
+                session_id: sessionId,
             });
             setLastResult(data);
             if (data.correct) setScore((s) => s + 1);
@@ -147,6 +161,16 @@ export default function Practice({ weakCategories }: { weakCategories: WeakCateg
                                             </button>
                                         ))}
                                     </div>
+                                    <div className="mt-5">
+                                        <p className="mb-2 text-xs font-medium text-amber-700/50">
+                                            Difficulty
+                                        </p>
+                                        <TabSelector
+                                            options={DIFFICULTY_OPTIONS}
+                                            value={difficulty}
+                                            onChange={setDifficulty}
+                                        />
+                                    </div>
                                     <button
                                         onClick={startPractice}
                                         disabled={!selectedCategory}
@@ -188,20 +212,24 @@ export default function Practice({ weakCategories }: { weakCategories: WeakCateg
                             </p>
 
                             {currentExercise.sentence && (
-                                <p className="mb-4 rounded-xl bg-white/80 px-4 py-3 font-mono text-sm text-amber-900/70">
+                                <p className={`mb-4 rounded-xl px-4 py-3 ${
+                                    currentExercise.type === 'translate_to_english'
+                                        ? 'border border-violet-200/60 bg-violet-50/50 font-serif text-base text-violet-900'
+                                        : 'bg-white/80 font-mono text-sm text-amber-900/70'
+                                }`}>
                                     {currentExercise.sentence}
                                 </p>
                             )}
 
-                            {/* fix_the_sentence / fill_in_the_blank */}
+                            {/* fix_the_sentence / fill_in_the_blank / translate_to_english */}
                             {currentExercise.type !== 'multiple_choice' && (
                                 <textarea
                                     value={userAnswer}
                                     onChange={(e) => setUserAnswer(e.target.value)}
-                                    rows={2}
+                                    rows={currentExercise.type === 'translate_to_english' ? 3 : 2}
                                     disabled={stage === 'checking'}
                                     className="w-full rounded-xl border-amber-200 bg-white/80 font-serif text-amber-950/80 shadow-sm transition-colors focus:border-amber-500 focus:ring-amber-500 disabled:opacity-50"
-                                    placeholder="Type your answer..."
+                                    placeholder={currentExercise.type === 'translate_to_english' ? 'Type your English translation...' : 'Type your answer...'}
                                 />
                             )}
 
@@ -236,8 +264,29 @@ export default function Practice({ weakCategories }: { weakCategories: WeakCateg
                     )}
 
                     {/* RESULT — Feedback */}
-                    {stage === 'result' && lastResult && (
+                    {stage === 'result' && lastResult && currentExercise && (
                         <Card>
+                            <div className="mb-4 flex items-center justify-between">
+                                <span className="text-xs font-medium text-amber-700/50">
+                                    Exercise {currentIndex + 1} of {exercises.length}
+                                </span>
+                                {!lastResult.correct && (
+                                    <button
+                                        onClick={() => {
+                                            setLastResult(null);
+                                            setStage('practicing');
+                                        }}
+                                        className="rounded-full border border-amber-300/60 bg-white/80 px-4 py-2 text-sm font-medium text-amber-800 shadow-sm transition-all duration-200 hover:bg-amber-50 hover:shadow"
+                                    >
+                                        Edit answer
+                                    </button>
+                                )}
+                            </div>
+
+                            <p className="mb-4 font-serif text-lg text-amber-950">
+                                {currentExercise.instruction}
+                            </p>
+
                             <div className={`mb-4 rounded-xl p-4 ${
                                 lastResult.correct
                                     ? 'border border-emerald-200/60 bg-emerald-50'
@@ -254,6 +303,32 @@ export default function Practice({ weakCategories }: { weakCategories: WeakCateg
                                     {lastResult.explanation}
                                 </p>
                             </div>
+
+                            {currentExercise.sentence && (
+                                <div className="mb-4 rounded-xl border border-violet-200/60 bg-violet-50/50 p-4">
+                                    <p className="text-xs font-medium text-violet-700/50">Original text</p>
+                                    <p className="mt-1 font-serif text-sm text-violet-900">
+                                        {currentExercise.sentence}
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="mb-4 rounded-xl border border-slate-200/60 bg-slate-50/50 p-4">
+                                <p className="text-xs font-medium text-slate-500">Your answer</p>
+                                <p className="mt-1 font-serif text-sm text-slate-800">
+                                    {submittedAnswer}
+                                </p>
+                            </div>
+
+                            {currentExercise.correct_answer && (
+                                <div className="mb-4 rounded-xl border border-amber-200/60 bg-amber-50/50 p-4">
+                                    <p className="text-xs font-medium text-amber-700/50">Correct answer</p>
+                                    <p className="mt-1 font-serif text-sm text-amber-900">
+                                        {currentExercise.correct_answer}
+                                    </p>
+                                </div>
+                            )}
+
                             <button
                                 onClick={nextExercise}
                                 className="rounded-full bg-amber-950 px-5 py-2.5 text-sm font-semibold text-amber-50 shadow-sm transition-all duration-200 hover:bg-amber-800 hover:shadow-lg hover:shadow-amber-900/20"

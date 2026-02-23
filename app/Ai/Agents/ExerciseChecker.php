@@ -25,6 +25,12 @@ class ExerciseChecker implements Agent, HasStructuredOutput
         determine if the student's answer is correct.
         Be lenient on minor differences (capitalization, trailing punctuation, extra spaces)
         but strict on the grammatical/spelling rule being tested.
+
+        For translate_to_english exercises: the sentence is in Russian and the student translates to English.
+        Evaluate semantic accuracy — does the English capture the Russian meaning?
+        Be lenient on phrasing variations since multiple valid translations exist.
+        Provide specific feedback: what was captured well, what was missed or awkward.
+
         Provide a brief explanation of why the answer is correct or incorrect.
         INST;
     }

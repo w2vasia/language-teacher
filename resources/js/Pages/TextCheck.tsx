@@ -1,8 +1,9 @@
 import Alert from '@/Components/Alert';
+import AnnotatedText from '@/Components/AnnotatedText';
 import Card from '@/Components/Card';
 import Textarea from '@/Components/Textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import MatchList, { Match } from '@/Components/MatchList';
+import { Match } from '@/Components/MatchList';
 import { Head } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import axios from 'axios';
@@ -21,6 +22,7 @@ interface QuickCheckResponse {
 
 export default function TextCheck() {
     const [text, setText] = useState('');
+    const [checkedText, setCheckedText] = useState('');
     const [matches, setMatches] = useState<Match[]>([]);
     const [translation, setTranslation] = useState<string | null>(null);
     const [checked, setChecked] = useState(false);
@@ -35,6 +37,7 @@ export default function TextCheck() {
         setError(null);
         try {
             const { data } = await axios.post<QuickCheckResponse>('/api/v1/check-text', { text });
+            setCheckedText(text);
             setMatches(data.matches);
             setTranslation(data.translation);
             setChecked(true);
@@ -51,6 +54,7 @@ export default function TextCheck() {
         setError(null);
         try {
             const { data } = await axios.post<AnalyzeResponse>('/api/v1/text/analyze', { text });
+            setCheckedText(text);
             setMatches(data.matches);
             setTranslation(data.translation);
             setChecked(true);
@@ -60,6 +64,11 @@ export default function TextCheck() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleEdit = () => {
+        setChecked(false);
+        setSaved(false);
     };
 
     return (
@@ -74,13 +83,19 @@ export default function TextCheck() {
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    {error && (
+                        <Alert variant="error" className="mb-4">
+                            {error}
+                        </Alert>
+                    )}
+
+                    {!checked ? (
                         <Card padding="none">
                             <div className="p-6">
                                 <form onSubmit={quickCheck}>
                                     <Textarea
                                         value={text}
-                                        onChange={(e) => { setText(e.target.value); setChecked(false); }}
+                                        onChange={(e) => setText(e.target.value)}
                                         rows={10}
                                         placeholder="Paste or type your text here..."
                                     />
@@ -104,46 +119,40 @@ export default function TextCheck() {
                                 </form>
                             </div>
                         </Card>
-
-                        <Card padding="none">
-                            <div className="p-6">
-                                <h3 className="mb-3 font-serif text-sm font-medium text-amber-800/70">
-                                    Translation
-                                </h3>
-                                {loading ? (
-                                    <div className="animate-pulse space-y-2">
-                                        <div className="h-4 w-3/4 rounded bg-amber-100"></div>
-                                        <div className="h-4 w-1/2 rounded bg-amber-100"></div>
-                                        <div className="h-4 w-5/6 rounded bg-amber-100"></div>
-                                    </div>
-                                ) : translation ? (
-                                    <p className="whitespace-pre-wrap font-serif leading-relaxed text-amber-950/80">
-                                        {translation}
-                                    </p>
-                                ) : (
-                                    <p className="font-serif text-sm italic text-amber-400">
-                                        Translation will appear here after checking...
-                                    </p>
-                                )}
+                    ) : (
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    {saved && (
+                                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
+                                            Saved
+                                        </span>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={handleEdit}
+                                    className="rounded-full border border-amber-300/60 bg-white/80 px-4 py-2 text-sm font-medium text-amber-800 shadow-sm transition-all duration-200 hover:bg-amber-50 hover:shadow"
+                                >
+                                    Edit text
+                                </button>
                             </div>
-                        </Card>
-                    </div>
 
-                    {error && (
-                        <Alert variant="error" className="mt-4">
-                            {error}
-                        </Alert>
+                            <AnnotatedText text={checkedText} matches={matches} />
+
+                            {translation && (
+                                <Card padding="none">
+                                    <div className="p-6">
+                                        <h3 className="mb-3 font-serif text-sm font-medium text-amber-800/70">
+                                            Translation
+                                        </h3>
+                                        <p className="whitespace-pre-wrap font-serif leading-relaxed text-amber-950/80">
+                                            {translation}
+                                        </p>
+                                    </div>
+                                </Card>
+                            )}
+                        </div>
                     )}
-
-                    {saved && (
-                        <Alert variant="success" className="mt-4">
-                            Analysis saved to your history.
-                        </Alert>
-                    )}
-
-                    <div className="mt-6">
-                        <MatchList matches={matches} checked={checked} />
-                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>

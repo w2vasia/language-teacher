@@ -35,6 +35,7 @@ class ErrorAnalysisService
                 ?? ErrorCategory::where('slug', 'other')->firstOrFail();
 
             $errors[] = Error::create([
+                'user_id' => $submission->user_id,
                 'text_submission_id' => $submission->id,
                 'error_category_id' => $category->id,
                 'message' => $match['message'] ?? '',
@@ -42,7 +43,7 @@ class ErrorAnalysisService
                 'offset' => $match['offset'] ?? 0,
                 'length' => $match['length'] ?? 0,
                 'replacement_suggestions' => array_map(
-                    fn($r) => $r['value'],
+                    fn ($r) => $r['value'],
                     $match['replacements'] ?? []
                 ),
                 'rule_id' => $match['rule']['id'] ?? null,

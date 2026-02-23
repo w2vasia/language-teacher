@@ -19,50 +19,60 @@ class AnalyticsPageTest extends TestCase
         $this->seed(\Database\Seeders\ErrorCategorySeeder::class);
     }
 
-    public function test_analytics_requires_auth(): void
-    {
-        $this->get('/analytics')->assertRedirect('/login');
-    }
-
-    public function test_analytics_renders_with_props(): void
+    public function test_old_analytics_url_redirects_to_dashboard(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/analytics');
+        $this->actingAs($user)
+            ->get('/analytics')
+            ->assertRedirect('/dashboard');
+    }
+
+    public function test_dashboard_requires_auth(): void
+    {
+        $this->get('/dashboard')->assertRedirect('/login');
+    }
+
+    public function test_dashboard_renders_with_analytics_props(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page
-            ->component('Analytics')
+            ->component('Dashboard')
             ->has('stats')
+            ->has('weakAreas')
             ->has('topicsToReview')
             ->has('errorSummary')
         );
     }
 
-    public function test_analytics_accepts_days_param(): void
+    public function test_dashboard_accepts_days_param(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/analytics?days=30');
+        $response = $this->actingAs($user)->get('/dashboard?days=30');
 
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page
-            ->component('Analytics')
+            ->component('Dashboard')
             ->has('stats')
             ->has('stats.previous')
             ->where('days', 30)
         );
     }
 
-    public function test_analytics_all_time_has_no_previous(): void
+    public function test_dashboard_all_time_has_no_previous(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/analytics?days=all');
+        $response = $this->actingAs($user)->get('/dashboard?days=all');
 
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page
-            ->component('Analytics')
+            ->component('Dashboard')
             ->where('days', null)
             ->has('stats', fn ($stats) => $stats
                 ->missing('previous')
@@ -71,16 +81,16 @@ class AnalyticsPageTest extends TestCase
         );
     }
 
-    public function test_analytics_rejects_invalid_days(): void
+    public function test_dashboard_rejects_invalid_days(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/analytics?days=999');
+        $response = $this->actingAs($user)->get('/dashboard?days=999');
 
         $response->assertRedirect();
     }
 
-    public function test_analytics_returns_topics_with_errors(): void
+    public function test_dashboard_returns_topics_with_errors(): void
     {
         $user = User::factory()->create();
         $submission = TextSubmission::factory()->create(['user_id' => $user->id]);
@@ -92,7 +102,7 @@ class AnalyticsPageTest extends TestCase
             'rule_id' => 'EN_A_VS_AN',
         ]);
 
-        $response = $this->actingAs($user)->get('/analytics?days=7');
+        $response = $this->actingAs($user)->get('/dashboard?days=7');
 
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page
@@ -109,11 +119,11 @@ class AnalyticsPageTest extends TestCase
         );
     }
 
-    public function test_analytics_empty_topics_when_no_errors(): void
+    public function test_dashboard_empty_topics_when_no_errors(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/analytics');
+        $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page

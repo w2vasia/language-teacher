@@ -10,20 +10,41 @@ class ErrorHistoryController extends Controller
 {
     public function __invoke(Request $request): Response
     {
+        $source = $request->query('source', 'text-check');
         $showAll = $request->boolean('show_all');
 
-        $query = $request->user()
-            ->textSubmissions()
-            ->with('errors.errorCategory')
-            ->latest();
+        $submissions = null;
+        $practiceSessions = null;
 
-        if (! $showAll) {
-            $query->whereHas('errors');
+        if ($source === 'practice') {
+            $query = $request->user()
+                ->practiceSessions()
+                ->with(['errors.errorCategory', 'errorCategory'])
+                ->latest();
+
+            if (! $showAll) {
+                $query->whereHas('errors');
+            }
+
+            $practiceSessions = $query->paginate(15)->withQueryString();
+        } else {
+            $query = $request->user()
+                ->textSubmissions()
+                ->with('errors.errorCategory')
+                ->latest();
+
+            if (! $showAll) {
+                $query->whereHas('errors');
+            }
+
+            $submissions = $query->paginate(15)->withQueryString();
         }
 
         return Inertia::render('ErrorHistory', [
-            'submissions' => $query->paginate(15)->withQueryString(),
+            'submissions' => $submissions,
+            'practiceSessions' => $practiceSessions,
             'showAll' => $showAll,
+            'source' => $source,
         ]);
     }
 }

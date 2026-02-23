@@ -16,6 +16,7 @@ class GenerateExercisesRequest extends FormRequest
         return [
             'category' => 'required|exists:error_categories,slug',
             'count' => 'sometimes|integer|min:1|max:10',
+            'difficulty' => 'sometimes|string|in:beginner,intermediate,advanced',
         ];
     }
 }
